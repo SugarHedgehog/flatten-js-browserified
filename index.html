@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flatten.js Browser Demo</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+        }
+        
+        #container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        #data-panel {
+            width: 300px;
+            height: 400px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow: auto;
+            font-family: monospace;
+            background-color: #f5f5f5;
+        }
+        
+        .json-key {
+            color: #881391;
+        }
+        
+        .json-string {
+            color: #1A1AA6;
+        }
+        
+        .json-number {
+            color: #1C00CF;
+        }
+        
+        .json-boolean {
+            color: #0000FF;
+        }
+        
+        .json-null {
+            color: #808080;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="canvas" width="600" height="400"></canvas>
+        <div id="data-panel">
+            <h3>Object Data</h3>
+            <div id="data-content"></div>
+        </div>
+    </div>
+    <script src="dist/bundle.js"></script>
+    <script>
+        // Получаем контекст canvas
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Создаем геометрические объекты
+        const point = new Point(100, 100);
+        const vector = new Vector(1, 1);
+        const circle = new Circle(point, 50);
+        const line = new Line(new Point(50, 200), vector);
+        const ray = new Ray(new Point(300, 300), vector);
+        const segment = new Segment(new Point(400, 100), new Point(500, 200));
+        const arc = new Arc(new Point(200, 300), 40, 0, Math.PI);
+        const box = new Box(50, 50, 150, 150);
+        const polygon = new Polygon();
+        
+        // Создаем полигон
+        polygon.addFace([
+            new Point(350, 50),
+            new Point(450, 50),
+            new Point(500, 150),
+            new Point(400, 200),
+            new Point(300, 150)
+        ]);
+
+        // Матрица преобразований
+        const matrix = new Matrix();
+        matrix.translate(10, 20);
+
+        // Набор геометрических объектов
+        const planarSet = new PlanarSet();
+        planarSet.add(circle);
+        planarSet.add(line);
+        planarSet.add(segment);
+
+        // Функция для форматирования JSON с подсветкой синтаксиса
+        function formatJSON(obj) {
+            const json = JSON.stringify(obj, null, 2);
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, 
+                function (match) {
+                    let cls = 'json-number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'json-key';
+                        } else {
+                            cls = 'json-string';
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'json-boolean';
+                    } else if (/null/.test(match)) {
+                        cls = 'json-null';
+                    }
+                    return '<span class="' + cls + '">' + match + '</span>';
+                });
+        }
+
+        // Функция для обновления панели данных
+        function updateDataPanel() {
+            const dataContent = document.getElementById('data-content');
+            
+            // Создаем объект с данными всех фигур
+            const data = {
+                point: {
+                    x: point.x,
+                    y: point.y
+                },
+                vector: {
+                    x: vector.x,
+                    y: vector.y
+                },
+                circle: {
+                    center: { x: circle.pc.x, y: circle.pc.y },
+                    radius: circle.r
+                },
+                line: {
+                    pt: line.pt,
+                    norm: line.norm,
+                },
+                ray: {
+                    pt: ray.pt,
+                    norm: ray.norm,
+                },
+                segment: {
+                    start: { x: segment.ps.x, y: segment.ps.y },
+                    end: { x: segment.pe.x, y: segment.pe.y }
+                },
+                arc: {
+                    center: { x: arc.center.x, y: arc.center.y },
+                    radius: arc.r,
+                    startAngle: arc.startAngle,
+                    endAngle: arc.endAngle
+                },
+                box: {
+                    min: { x: box.xmin, y: box.ymin },
+                    max: { x: box.xmax, y: box.ymax }
+                },
+                matrix: {
+                    a: matrix.a,
+                    b: matrix.b,
+                    c: matrix.c,
+                    d: matrix.d,
+                    tx: matrix.tx,
+                    ty: matrix.ty
+                }
+            };
+            
+            // Форматируем и отображаем JSON
+            dataContent.innerHTML = formatJSON(data);
+        }
+
+        // Функция для отрисовки объектов
+        /* function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Рисуем все объекты из PlanarSet
+            planarSet.forEach(shape => {
+                ctx.beginPath();
+                
+                if (shape instanceof Circle) {
+                    ctx.arc(shape.pc.x, shape.pc.y, shape.r, 0, 2 * Math.PI);
+                } else if (shape instanceof Segment) {
+                    ctx.moveTo(shape.ps.x, shape.ps.y);
+                    ctx.lineTo(shape.pe.x, shape.pe.y);
+                } else if (shape instanceof Line) {
+                    // Упрощенная отрисовка линии
+                    ctx.moveTo(shape.ps.x, shape.ps.y);
+                    ctx.lineTo(shape.pe.x, shape.pe.y);
+                }
+                
+                ctx.stroke();
+            });
+
+            // Рисуем остальные объекты
+            ctx.strokeStyle = 'red';
+            arc.plot(ctx);
+            
+            ctx.strokeStyle = 'blue';
+            box.plot(ctx);
+            
+            ctx.strokeStyle = 'green';
+            polygon.plot(ctx);
+        } */
+
+        //draw();
+        updateDataPanel();
+        
+        // Обновление данных при клике на canvas
+        canvas.addEventListener('click', function(e) {
+            // Пример изменения данных при клике
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Перемещаем точку на место клика
+            point.x = x;
+            point.y = y;
+            
+            // Обновляем круг, чтобы он следовал за точкой
+            circle.pc = point;
+            
+            // Перерисовываем и обновляем данные
+            draw();
+            updateDataPanel();
+        });
+    </script>
+</body>
+</html>
