@@ -1,15 +1,6 @@
 # flatten-js-browserified
 flatten-js for browser
 
-## installation
-
-
-```sh
-
-npm install cubic-spline-browserified
-
-```
-
 ## usage
 
 ```html
